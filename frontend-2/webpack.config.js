@@ -4,7 +4,7 @@ const Dotenv = require('dotenv-webpack');
 
 module.exports = {
   devServer: {
-    port: 3001,
+    port: 3002,
     open: true, //opens default web browser
     hot: true, // see the changes without refresh the whole page
     historyApiFallback: true, //It sets up HTML5 History API fallback to support client-side routing in a single-page application

@@ -14,11 +14,11 @@ export const registerUer = async(req:Request, res: Response):Promise<void> =>{
         let userDetails = await User.findOne({email});
      
         if(userDetails){
-            res.status(401).send({message: "User has already registered"});
+            res.status(200).send({message: "You are already registered"});
             return;
         }
         await User.create({email, password});
-        res.status(200).send({message: "You are successfully registered", user : {email, password}});
+        res.status(200).send({message: "You are successfully registered"});
         return;
 
      }
@@ -33,21 +33,21 @@ export const registerUer = async(req:Request, res: Response):Promise<void> =>{
 export const login = async(req:Request, res:Response):Promise<void> =>{
     let {email, password} = req.body;
     if(!email || !password)  {
-        res.status(401).send({message:"Please enter email & password"});
+        res.status(200).send({message:"Please enter email & password"});
     }
     try{
 
         let findEmail = await User.findOne({email, password});
         if(findEmail){
 
-            const token = jwt.sign({email, password}, process.env.SECRET_KEY || "secret_key", { expiresIn: '1m' });
-            const refreshToken = jwt.sign({email, password}, process.env.SECRET_KEY || "secret_key", { expiresIn: '2m' });
+            const token = jwt.sign({email, password}, process.env.SECRET_KEY ?? "secret_key", { expiresIn: '1m' });
+            const refreshToken = jwt.sign({email, password}, process.env.SECRET_KEY ?? "secret_key", { expiresIn: '4m' });
 
-            res.status(200).send({token, refreshToken});
+            res.status(200).send({message: "You are logged-in", token, refreshToken});
             return;
 
         }
-        res.status(401).send({message: "Unauthorised"});
+        res.status(200).send({message: "Unauthorised"});
         return;
 
     }
@@ -58,24 +58,27 @@ export const login = async(req:Request, res:Response):Promise<void> =>{
 }
 
 
-type requestToken  = string;
-export const regenerateToken = (req:Request , res:Response):void =>{
-    let refreshToken: any = req.header("Refreshtoken");
-    try{
 
-        let refreshTokenVerification : any = jwt.verify(refreshToken, process.env.SECRET_KEY || "secret_key");
-        if(refreshTokenVerification?.email && refreshTokenVerification?.password){
 
-            let token = jwt.sign({email : refreshTokenVerification?.email, password: refreshTokenVerification?.password}, process.env.SECRET_KEY || "secret_key", {expiresIn:"1m"});
-            res.status(200).send({message:"Token is regenerated", token, refreshToken});
+type objType = {
+    message: string;
+    token: string;
+    refreshToken:  string;
+    regenerate? : boolean;
+}
+export const authorizedRoute = (req:Request, res:Response) => {
+    let token = (req as any).token;
+    let refreshToken = (req as any).refreshToken;
 
+    let obj: objType = {
+        message: "You are an authorized user", token, refreshToken
+    }
+    if((req as any)?.regenerate){
+        obj = {
+            ...obj,
+            regenerate : true,
         }
-
-        
-        return;
     }
-    catch(err:any){
-        res.status(403).send({message: "Please login again"});
-    }
+    res.status(200).send(obj);
 
 }

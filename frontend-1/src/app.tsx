@@ -1,50 +1,44 @@
-import React, {useState, useCallback } from 'react';
-import {StyleButton} from "./Styles/style-components";
-import Child from './child';
-
-const App: React.FC = () => {
-
-  const [count, setCount] = useState<number>(0);
-  const [rend, setRend] = useState<boolean>(false);
-  const [name, setName] = useState<boolean>(true);
-
-  const updatedCount =  React.useMemo(expensiveFunction,[count]);
-
-  function expensiveFunction():number{
-    console.log("hjsdjhds");
-    return count*2;
+import React, { useEffect } from 'react'
+import Navbar from './Navbar/Navbar';
+import "./Styles/global.css";
+import Router from './Router/router';
+import { useSelector } from 'react-redux';
+let createHost = require('cross-domain-storage/host');
+let storageHost = createHost([
+  {
+      origin: 'http://localhost:3001',
+      allowedMethods: ['get', 'set', 'remove'],
+  },
+  {
+      origin: 'http://localhost:3002',
+      allowedMethods: ['get', 'set', 'remove'],
+  },
+  {
+      origin: 'http://localhost:3003',
+      allowedMethods: ['get', 'set', 'remove'],
   }
+]);
 
-  
+const App = () => {
 
-  const increment = ():void =>{
-     setCount(count+1);
-  }
+  const {logOut, token, refreshToken} = useSelector((state:any)=>state.loginAuth);
 
-  const decrement = ():void =>{
-     setCount(count-1);
-  }
+  useEffect(()=>{
 
-  const renderAgain = useCallback(function():void{
-    setName(!name);
-  }, [name]);
+     if(logOut){
 
+      storageHost.close();
+
+     }
+    
+  },[token, refreshToken, logOut])
 
   return (
     <div>
-
-        <StyleButton onClick={decrement}>Decrement</StyleButton>
-        <p>{count}</p>
-        <p>{updatedCount}</p>
-        <StyleButton onClick={increment}>Increment</StyleButton>
-        <StyleButton onClick={():void=>{
-            setRend(!rend);
-        }}>Render</StyleButton>
-
-        <Child name={name} renderAgain={renderAgain}/>
-      
+        <Navbar/>
+        <Router/>
     </div>
   )
 }
 
-export default App;
+export default App
